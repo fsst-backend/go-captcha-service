@@ -122,6 +122,13 @@ fmt:
 docker-build:
 	docker build -t $(DOCKER_IMAGE):latest .
 
+
+
+# Local Docker build amd64 (binary)
+.PHONY: docker-build-amd64
+docker-build-amd64:
+	docker buildx build  --platform linux/amd64 -t $(DOCKER_IMAGE):amd64-$(VERSION) .
+
 # Multi-architecture Docker build and push (binary)
 .PHONY: docker-build-multi
 docker-build-multi:
