@@ -330,10 +330,11 @@ func Validate(config Config) error {
 	}
 
 	validCacheTypes := map[string]bool{
-		"redis":    true,
-		"memory":   true,
-		"etcd":     true,
-		"memcache": true,
+		"redis":         true,
+		"redis_cluster": true,
+		"memory":        true,
+		"etcd":          true,
+		"memcache":      true,
 	}
 	if !validCacheTypes[config.CacheType] {
 		return fmt.Errorf("invalid cache_type: %s, must be redis, memory, etcd, or memcache", config.CacheType)
