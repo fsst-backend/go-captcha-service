@@ -14,6 +14,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	config2 "github.com/wenlng/go-captcha-service/internal/pkg/gocaptcha/config"
+
 	"github.com/wenlng/go-captcha-service/internal/cache"
 	"github.com/wenlng/go-captcha-service/proto"
 )
@@ -25,11 +27,17 @@ func TestCacheServer(t *testing.T) {
 
 	ttl := time.Duration(10) * time.Second
 	cleanInt := time.Duration(30) * time.Second
-	cacheClient := cache.NewMemoryCache("TEST_CAPTCHA_DATA:", ttl, cleanInt)
+	cacheClient, _ := cache.NewCacheManager(
+		&cache.CacheMgrParams{
+			Type:      cache.CacheTypeMemory,
+			KeyPrefix: "TEST_CAPTCHA_DATA:",
+			Ttl:       ttl,
+			CleanInt:  cleanInt,
+		},
+	)
 	defer cacheClient.Close()
 
 	dc := &config.DynamicConfig{Config: config.DefaultConfig()}
-	cnf := dc.Get()
 	captDCfg := &config2.DynamicCaptchaConfig{Config: config2.DefaultConfig()}
 
 	logger, err := zap.NewProduction()
@@ -39,16 +47,16 @@ func TestCacheServer(t *testing.T) {
 	assert.NoError(t, err)
 
 	svcCtx := &common.SvcContext{
-		Cache:   cacheClient,
-		Config:  &cnf,
-		Logger:  logger,
-		Captcha: captcha,
+		CacheMgr:      cacheClient,
+		DynamicConfig: dc,
+		Logger:        logger,
+		Captcha:       captcha,
 	}
 	server := NewGoCaptchaServer(svcCtx)
 
 	t.Run("GetData", func(t *testing.T) {
 		req := &proto.GetDataRequest{
-			Type: proto.GoCaptchaType_GoCaptchaTypeClick,
+			Id: "slide-default",
 		}
 		resp, err := server.GetData(context.Background(), req)
 		assert.NoError(t, err)
@@ -57,7 +65,7 @@ func TestCacheServer(t *testing.T) {
 
 	t.Run("GetData_Miss", func(t *testing.T) {
 		req := &proto.GetDataRequest{
-			Type: -1,
+			Id: "slide-default",
 		}
 		_, err := server.GetData(context.Background(), req)
 		assert.Error(t, err)

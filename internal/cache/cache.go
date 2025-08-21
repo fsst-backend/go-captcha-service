@@ -17,10 +17,11 @@ type CacheType string
 
 // CacheType .
 const (
-	CacheTypeRedis    CacheType = "redis"
-	CacheTypeMemory             = "memory"
-	CacheTypeEtcd               = "etcd"
-	CacheTypeMemcache           = "memcache"
+	CacheTypeRedis        CacheType = "redis"
+	CacheTypeRedisCluster CacheType = "redis_cluster"
+	CacheTypeMemory                 = "memory"
+	CacheTypeEtcd                   = "etcd"
+	CacheTypeMemcache               = "memcache"
 )
 
 // Cache defines the interface for cache operations
@@ -30,6 +31,11 @@ type Cache interface {
 	DeleteCache(ctx context.Context, key string) error
 	Close() error
 }
+
+var (
+	_ Cache = (*RedisClient)(nil)
+	_ Cache = (*RedisClusterClient)(nil)
+)
 
 // CaptCacheData ..
 type CaptCacheData struct {
@@ -84,6 +90,18 @@ func (cm *CacheManager) Setup(arg *CacheMgrParams) error {
 	curAddrs := arg.CacheAddrs
 
 	switch arg.Type {
+	case CacheTypeRedisCluster:
+		if cm.cAddress == curAddrs &&
+			cm.cKeyPrefix == arg.KeyPrefix &&
+			cm.cTtl == arg.Ttl &&
+			cm.cUsername == arg.CacheUsername &&
+			cm.cPassword == arg.CachePassword {
+			return nil
+		}
+		curCache, err = NewRedisClusterClient(arg.CacheAddrs, arg.KeyPrefix, arg.Ttl, arg.CacheUsername, arg.CachePassword)
+		if err != nil {
+			return fmt.Errorf("failed to initialize Redis cluster: %v", err)
+		}
 	case CacheTypeRedis:
 		if cm.cAddress == curAddrs &&
 			cm.cKeyPrefix == arg.KeyPrefix &&

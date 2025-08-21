@@ -5,7 +5,7 @@
   "http_port": "8080",
   "grpc_port": "50051",
 
-  "cache_type": "memory",
+  "cache_type": "redis_cluster",
   "cache_addrs": "",
   "cache_username": "",
   "cache_password": "",

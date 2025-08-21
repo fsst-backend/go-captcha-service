@@ -12,9 +12,11 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
+	"github.com/wenlng/go-captcha-service/internal/common"
 	"github.com/wenlng/go-captcha-service/internal/config"
 	"github.com/wenlng/go-captcha-service/internal/middleware"
 	"github.com/wenlng/go-captcha-service/internal/pkg/gocaptcha"
+	config2 "github.com/wenlng/go-captcha-service/internal/pkg/gocaptcha/config"
 	"go.uber.org/zap"
 
 	"github.com/wenlng/go-captcha-service/internal/cache"
@@ -27,23 +29,31 @@ func TestHTTPHandlers(t *testing.T) {
 
 	ttl := time.Duration(10) * time.Second
 	cleanInt := time.Duration(30) * time.Second
-	cacheClient := cache.NewMemoryCache("TEST_CAPTCHA_DATA:", ttl, cleanInt)
+	cacheClient, _ := cache.NewCacheManager(
+		&cache.CacheMgrParams{
+			Type:      cache.CacheTypeMemory,
+			KeyPrefix: "TEST_CAPTCHA_DATA:",
+			Ttl:       ttl,
+			CleanInt:  cleanInt,
+		},
+	)
 	defer cacheClient.Close()
 
 	dc := &config.DynamicConfig{Config: config.DefaultConfig()}
-	cnf := dc.Get()
+
+	captDCfg := &config2.DynamicCaptchaConfig{Config: config2.DefaultConfig()}
 
 	logger, err := zap.NewProduction()
 	assert.NoError(t, err)
 
-	captcha, err := gocaptcha.Setup()
+	captcha, err := gocaptcha.Setup(captDCfg)
 	assert.NoError(t, err)
 
-	svcCtx := &base.SvcContext{
-		Cache:   cacheClient,
-		Config:  &cnf,
-		Logger:  logger,
-		Captcha: captcha,
+	svcCtx := &common.SvcContext{
+		CacheMgr:      cacheClient,
+		DynamicConfig: dc,
+		Logger:        logger,
+		Captcha:       captcha,
 	}
 	handlers := NewHTTPHandlers(svcCtx)
 
@@ -81,7 +91,7 @@ func TestHTTPHandlers(t *testing.T) {
 		json.Unmarshal(rr.Body.Bytes(), &resp)
 		assert.Equal(t, "success", resp["status"])
 
-		value, err := cacheClient.GetCache(context.Background(), "key2")
+		value, err := cacheClient.GetCache().GetCache(context.Background(), "key2")
 		assert.NoError(t, err)
 		assert.Equal(t, "value2", value)
 	})

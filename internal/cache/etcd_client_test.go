@@ -16,7 +16,7 @@ func TestEtcdClient(t *testing.T) {
 	assert.NoError(t, err)
 	defer etcd.Close()
 
-	client, err := NewEtcdClient("localhost:2379", "TEST_KEY:", 60*time.Second)
+	client, err := NewEtcdClient("localhost:2379", "TEST_KEY:", 60*time.Second, "", "")
 	assert.NoError(t, err)
 	defer client.Close()
 

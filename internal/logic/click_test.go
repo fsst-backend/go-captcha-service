@@ -26,7 +26,14 @@ func TestCacheLogic(t *testing.T) {
 
 	ttl := time.Duration(10) * time.Second
 	cleanInt := time.Duration(30) * time.Second
-	cacheClient := cache.NewMemoryCache("TEST_CAPTCHA_DATA:", ttl, cleanInt)
+	cacheClient, _ := cache.NewCacheManager(
+		&cache.CacheMgrParams{
+			Type:      cache.CacheTypeMemory,
+			KeyPrefix: "TEST_CAPTCHA_DATA:",
+			Ttl:       ttl,
+			CleanInt:  cleanInt,
+		},
+	)
 	defer cacheClient.Close()
 
 	dc := &config.DynamicConfig{Config: config.DefaultConfig()}
@@ -60,7 +67,7 @@ func TestCacheLogic(t *testing.T) {
 		data, err := logic.GetData(context.Background(), "dd")
 		assert.NoError(t, err)
 
-		cacheData, err := svcCtx.CacheMgr.GetCache(context.Background(), data.CaptchaKey)
+		cacheData, err := svcCtx.CacheMgr.GetCache().GetCache(context.Background(), data.CaptchaKey)
 		assert.NoError(t, err)
 
 		var dct map[int]*click.Dot
@@ -83,7 +90,7 @@ func TestCacheLogic(t *testing.T) {
 		data, err := logic.GetData(context.Background(), "dd")
 		assert.NoError(t, err)
 
-		cacheData, err := svcCtx.CacheMgr.GetCache(context.Background(), data.CaptchaKey)
+		cacheData, err := svcCtx.CacheMgr.GetCache().GetCache(context.Background(), data.CaptchaKey)
 		assert.NoError(t, err)
 
 		var dct map[int]*click.Dot

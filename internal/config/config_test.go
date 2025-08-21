@@ -45,10 +45,10 @@ func TestValidate(t *testing.T) {
 	config := Config{
 		HTTPPort:              "8080",
 		GRPCPort:              "50051",
-		RedisAddrs:            "localhost:6379",
+		CacheAddrs:            "localhost:6379",
 		CacheType:             "redis",
 		CacheTTL:              60,
-		ServiceDiscovery:      "etcd",
+		ServiceDiscoveryType:  "etcd",
 		ServiceDiscoveryAddrs: "localhost:2379",
 		RateLimitQPS:          1000,
 		RateLimitBurst:        1000,
