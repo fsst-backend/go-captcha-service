@@ -331,6 +331,7 @@ func Validate(config Config) error {
 
 	validCacheTypes := map[string]bool{
 		"redis":         true,
+		"redis_node":    true,
 		"redis_cluster": true,
 		"memory":        true,
 		"etcd":          true,

@@ -18,7 +18,8 @@ type CacheType string
 // CacheType .
 const (
 	CacheTypeRedis        CacheType = "redis"
-	CacheTypeRedisCluster CacheType = "redis_cluster"
+	CacheTypeRedisNode              = "redis_node"
+	CacheTypeRedisCluster           = "redis_cluster"
 	CacheTypeMemory                 = "memory"
 	CacheTypeEtcd                   = "etcd"
 	CacheTypeMemcache               = "memcache"
@@ -102,7 +103,7 @@ func (cm *CacheManager) Setup(arg *CacheMgrParams) error {
 		if err != nil {
 			return fmt.Errorf("failed to initialize Redis cluster: %v", err)
 		}
-	case CacheTypeRedis:
+	case CacheTypeRedis, CacheTypeRedisNode:
 		if cm.cAddress == curAddrs &&
 			cm.cKeyPrefix == arg.KeyPrefix &&
 			cm.cTtl == arg.Ttl &&
